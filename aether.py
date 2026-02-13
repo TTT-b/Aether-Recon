@@ -23,7 +23,7 @@ def show_banner():
 ██╔══██║██╔══╝     ██║   ██╔══██║██╔══╝  ██╔══██╗
 ██║  ██║███████╗   ██║   ██║  ██║███████╗██║  ██║
 ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-         V5.2 | Professional Edition
+         V5.0 | Professional Edition
 """ + "═"*65 + f"{RESET}")
 
 def check_dependencies():
