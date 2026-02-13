@@ -39,8 +39,10 @@ For transparency, here is the list of tools Aether utilizes:
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/TTT-b/Aether-Recon.git](https://github.com/TTT-b/Aether-Recon.git)
+   git clone https://github.com/TTT-b/Aether-Recon.git
    cd Aether-Recon
+   chmod +x aether.py
+   
 Make the script executable (Optional):
 
 Bash
