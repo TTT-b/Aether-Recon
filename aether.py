@@ -24,7 +24,7 @@ def show_banner():
 /_/  |_|/_____/  /_/   /_/ /_//_____//_/ |_|   
                                                
            [ Professional Recon Suite V5.0 ]
-   🔍 Scanning for vulnerabilities and insights...
+    🔍 Scanning for vulnerabilities and insights...
  ═════════════════════════════════════════════════════
     """
     print(banner)
@@ -98,7 +98,7 @@ def generate_report(base_dir, target):
             f.write("##  Technology Stack\n")
             if os.path.exists(f"{raw_dir}/tech_stack.txt"):
                 with open(f"{raw_dir}/tech_stack.txt", 'r') as tech:
-                    f.write(f"```\n{tech.read().strip()[:500]}\n```\n") # Limit size
+                    f.write(f"```\n{tech.read().strip()[:500]}\n```\n")
             else:
                 f.write("_No data collected._\n")
 
@@ -136,7 +136,6 @@ def generate_report(base_dir, target):
 def main():
     show_banner()
     
-    # Initialize base_dir for cleanup logic
     base_dir = None
 
     try:
@@ -145,10 +144,13 @@ def main():
             print(f"{ERROR}[!] Aborted by user.{RESET}")
             sys.exit(1)
         
-        # 2. Target Input with retry logic
+        # 2. Target Input with retry/exit logic
         while True:
-            raw_input = input(f"{SECONDARY}{BOLD}» Target Host: {RESET}").strip()
+            raw_input = input(f"{SECONDARY}{BOLD}» Target Host (type 'exit' to quit): {RESET}").strip()
             if not raw_input: continue
+            if raw_input.lower() in ['exit', 'quit']:
+                print(f"{ACCENT}[*] Exiting Aether...{RESET}")
+                sys.exit(0)
 
             target = raw_input.split()[0].rstrip('/')
             host_only = target.replace("http://", "").replace("https://", "").split('/')[0].split(':')[0]
@@ -183,7 +185,6 @@ def main():
         print(f"\n{PRIMARY}{BOLD}★ Mission Accomplished ★{RESET}")
         print(f"{SECONDARY}[ℹ] Results saved in: {base_dir}{RESET}")
 
-    # --- Cleanup Logic on Interrupt ---
     except KeyboardInterrupt:
         print(f"\n\n{ERROR}[!] Interrupted by user.{RESET}")
         
