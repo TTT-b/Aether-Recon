@@ -1,4 +1,4 @@
-# 🌌 Aether Recon Suite V4.5
+# 🌌 Aether Recon Suite V5.0
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
