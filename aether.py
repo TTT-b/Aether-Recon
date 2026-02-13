@@ -14,16 +14,16 @@ PRIMARY, SECONDARY, SUCCESS, ACCENT, ERROR = '\033[38;5;33m', '\033[38;5;45m', '
 BOLD, RESET = '\033[1m', '\033[0m'
 
 def show_banner():
-    """Display the professional ASCII banner"""
+    """Display the enhanced V6.0 ASCII banner"""
     os.system('clear' if os.name == 'posix' else 'cls')
-    print(f"{PRIMARY}{BOLD}" + "═"*65 + f"\n" + """
-█████╗ ███████╗████████╗██╗  ██╗███████╗██████╗ 
-██╔══██╗██╔════╝╚══██╔══╝██║  ██║██╔════╝██╔══██╗
-███████║█████╗     ██║   ███████║█████╗  ██████╔╝
-██╔══██║██╔══╝     ██║   ██╔══██║██╔══╝  ██╔══██╗
-██║  ██║███████╗   ██║   ██║  ██║███████╗██║  ██║
-╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-         V5.0 | Gold Standard Edition
+    print(f"{PRIMARY}{BOLD}" + "═"*65 + f"\n" + r"""
+    ___    ______ ______  __  __ ______ ____  
+   /   |  / ____//_  __/ / / / // ____// __ \ 
+  / /| | / __/    / /   / /_/ // __/  / /_/ / 
+ / ___ |/ /___   / /   / __  // /___ / _, _/  
+/_/  |_|/_____/  /_/   /_/ /_//_____//_/ |_|   
+                                               
+          V5.0 | Professional Recon Suite
 """ + "═"*65 + f"{RESET}")
 
 def check_dependencies():
@@ -85,12 +85,12 @@ def generate_report(base_dir, target):
     
     try:
         with open(report_path, 'w') as f:
-            f.write(f"# 🛡️ Aether Recon Report: {target}\n")
+            f.write(f"#  Aether Recon Report: {target}\n")
             f.write(f"**Scan Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write("---\n\n")
             
             # 1. Tech Stack
-            f.write("## 🏗️ Technology Stack\n")
+            f.write("##  Technology Stack\n")
             if os.path.exists(f"{raw_dir}/tech_stack.txt"):
                 with open(f"{raw_dir}/tech_stack.txt", 'r') as tech:
                     f.write(f"```\n{tech.read().strip()[:500]}\n```\n") # Limit size
@@ -98,7 +98,7 @@ def generate_report(base_dir, target):
                 f.write("_No data collected._\n")
 
             # 2. Open Ports
-            f.write("\n## 🌐 Open Ports & Services\n")
+            f.write("\n##  Open Ports & Services\n")
             if os.path.exists(f"{raw_dir}/nmap_scan.txt"):
                 with open(f"{raw_dir}/nmap_scan.txt", 'r') as nmap:
                     content = nmap.read()
@@ -110,7 +110,7 @@ def generate_report(base_dir, target):
                         f.write("_No open ports found or scan failed._\n")
             
             # 3. Directories
-            f.write("\n## 📂 Discovered Paths (Top 5)\n")
+            f.write("\n##  Discovered Paths (Top 5)\n")
             if os.path.exists(f"{raw_dir}/ffuf_results.json"):
                 try:
                     with open(f"{raw_dir}/ffuf_results.json", 'r') as ffuf:
