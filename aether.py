@@ -3,12 +3,17 @@ import os
 import sys
 import time
 import subprocess
-import re
+import json
 from datetime import datetime
 
-# --- Aether Visual Palette ---
-PRIMARY, SECONDARY, SUCCESS, ACCENT, ERROR = '\033[38;5;129m', '\033[38;5;45m', '\033[38;5;82m', '\033[38;5;202m', '\033[38;5;196m'
-BOLD, RESET = '\033[1m', '\033[0m'
+# --- Aether Visual Palette (Recon Blue Edition) ---
+PRIMARY = '\033[38;5;33m'    # Recon Blue
+SECONDARY = '\033[38;5;45m'  # Electric Blue
+SUCCESS = '\033[38;5;82m'    # Neon Green
+ACCENT = '\033[38;5;202m'    # Status Orange
+ERROR = '\033[38;5;196m'     # Red
+BOLD = '\033[1m'
+RESET = '\033[0m'
 
 def show_banner():
     os.system('clear' if os.name == 'posix' else 'cls')
@@ -19,30 +24,38 @@ def show_banner():
 ██╔══██║██╔══╝     ██║   ██╔══██║██╔══╝  ██╔══██╗
 ██║  ██║███████╗   ██║   ██║  ██║███████╗██║  ██║
 ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-         V4.0 | Professional Recon Edition
+         V4.1 | Professional Recon Edition
 """ + "═"*65 + f"{RESET}")
 
 def check_dependencies():
     tools = {'nmap': 'nmap --version', 'ffuf': 'ffuf -V', 'whatweb': 'whatweb --version'}
     missing = [t for t, cmd in tools.items() if subprocess.run(cmd, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0]
+    
     if not missing: return True
-    print(f"{ERROR}[!] Missing: {', '.join(missing)}{RESET}")
-    if input(f"{ACCENT}» Install automatically? (Y/n): {RESET}").lower() in ['y', 'yes', '']:
-        subprocess.run("sudo apt-get update", shell=True)
-        for t in missing: os.system(f"sudo apt-get install --reinstall -y {t}")
+    
+    print(f"{ERROR}[!] Missing or broken tools: {', '.join(missing)}{RESET}")
+    choice = input(f"{ACCENT}[?] Install/Repair them automatically? (Y/n): {RESET}").lower()
+    if choice in ['y', 'yes', '']:
+        print(f"{ACCENT}[*] Updating system & fixing tools...{RESET}")
+        os.system("sudo apt-get update -y")
+        for t in missing:
+            os.system(f"sudo apt-get install --reinstall -y {t}")
         return True
     return False
 
 def run_step(step_num, title, command):
     print(f"{PRIMARY}{BOLD}┌──[Step {step_num}/3] {title}{RESET}")
+    print(f"{ACCENT}│ Running...{RESET}")
     start = time.time()
     exit_code = os.system(command)
     duration = round(time.time() - start, 2)
-    status = f"{SUCCESS}Completed" if exit_code == 0 else f"{ERROR}Failed"
-    print(f"{SUCCESS if exit_code == 0 else ERROR}└─╼ {status} in {duration}s.{RESET}\n")
+    
+    if exit_code == 0:
+        print(f"{SUCCESS}└─╼ Completed in {duration}s.{RESET}\n")
+    else:
+        print(f"{ERROR}└─╼ Failed or interrupted after {duration}s.{RESET}\n")
 
 def parse_nmap(file_path):
-    """Extracts open ports from Nmap text file"""
     ports = []
     if os.path.exists(file_path):
         with open(file_path, 'r') as f:
@@ -51,63 +64,88 @@ def parse_nmap(file_path):
                     ports.append(line.strip())
     return ports
 
+def parse_whatweb(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = f.read().strip()
+            # Basic cleanup of the WhatWeb output for the report
+            return content.split(" [200 OK] ")[-1] if " [200 OK] " in content else content[:100]
+    return "No technology data found."
+
+def parse_ffuf(file_path):
+    found_paths = []
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+                for res in data.get('results', []):
+                    found_paths.append(f"/{res['input']['FUZZ']} (Status: {res['status']})")
+        except: pass
+    return found_paths[:10] # Return top 10 findings
+
 def create_smart_report(base_dir, raw_dir, target):
-    """Generates a beautiful summary report by parsing raw logs"""
     report_path = f"{base_dir}/Executive_Summary.md"
     
-    # Extract data from raw files
-    open_ports = parse_nmap(f"{raw_dir}/nmap_scan.txt")
+    ports = parse_nmap(f"{raw_dir}/nmap_scan.txt")
+    tech = parse_whatweb(f"{raw_dir}/tech_stack.txt")
+    paths = parse_ffuf(f"{raw_dir}/ffuf_results.json")
     
     with open(report_path, 'w') as f:
-        f.write(f"# 🛡️ Recon Report: {target}\n")
-        f.write(f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write(f"# 🛡️ Aether Recon Report: {target}\n")
+        f.write(f"**Scan Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         
-        f.write("## 🌐 Network Services (Nmap)\n")
-        if open_ports:
-            f.write("Found the following open ports:\n")
-            for port in open_ports: f.write(f"- `{port}`\n")
-        else:
-            f.write("- No open ports discovered.\n")
-            
-        f.write("\n## 🛠️ Technology Stack (WhatWeb)\n")
-        f.write(f"Detailed stack info saved in `{raw_dir}/tech_stack.txt`\n")
+        f.write("## 🌐 Network Services\n")
+        if ports:
+            for p in ports: f.write(f"- `{p}`\n")
+        else: f.write("- No open ports found.\n")
+        f.write(f"\n> **Quick View:** `cat {raw_dir}/nmap_scan.txt`\n\n")
         
-        f.write("\n## 📂 Discovered Paths (FFUF)\n")
-        f.write(f"Directory fuzzing results available in `{raw_dir}/ffuf_results.json`\n")
+        f.write("## 🛠️ Technology Stack\n")
+        f.write(f"```\n{tech}\n```\n")
+        f.write(f"\n> **Quick View:** `cat {raw_dir}/tech_stack.txt`\n\n")
         
-    print(f"{SUCCESS}[+] Professional report generated: {report_path}{RESET}")
+        f.write("## 📂 Top Discovered Paths\n")
+        if paths:
+            for path in paths: f.write(f"- {path}\n")
+        else: f.write("- No interesting paths found.\n")
+        f.write(f"\n> **Full JSON Data:** `cat {raw_dir}/ffuf_results.json`\n")
+
+    print(f"{SUCCESS}[+] Smart report generated: {report_path}{RESET}")
 
 def main():
     show_banner()
     if not check_dependencies(): sys.exit(1)
     
-    target = input(f"{SECONDARY}{BOLD}» Target Host: {RESET}").strip()
+    target = input(f"{SECONDARY}{BOLD}» Target Host (e.g. example.com): {RESET}").strip()
     if not target: return
 
-    # Better Directory Logic
-    host_clean = target.replace("http://", "").replace("https://", "").split('/')[0].replace(".", "_")
-    base_dir = f"Aether_{host_clean}_{datetime.now().strftime('%H%M')}"
+    host_clean = target.replace("http://", "").replace("https://", "").split('/')[0]
+    folder_name = host_clean.replace(".", "_")
+    base_dir = f"Aether_{folder_name}_{datetime.now().strftime('%H%M')}"
     raw_dir = f"{base_dir}/raw_logs"
     
     os.makedirs(raw_dir, exist_ok=True)
-    print(f"{SECONDARY}[ℹ] Session organized in: {base_dir}{RESET}\n")
-
     full_url = target if target.startswith("http") else f"http://{target}"
 
-    # Step 1: Tech
-    run_step(1, "Technology Fingerprinting", f"whatweb -a 3 {full_url} --color=never > {raw_dir}/tech_stack.txt")
+    # Step 1: Tech Stack
+    run_step(1, "Technology Fingerprinting", 
+             f"whatweb -a 3 {full_url} --color=never > {raw_dir}/tech_stack.txt")
     
     # Step 2: Nmap
-    run_step(2, "Service Discovery", f"nmap -sV -F {host_clean.replace('_', '.')} -oN {raw_dir}/nmap_scan.txt")
+    run_step(2, "Service Discovery", 
+             f"nmap -sV -F {host_clean} -oN {raw_dir}/nmap_scan.txt")
     
-    # Step 3: FFUF
+    # Step 3: FFUF (Now with Live Output)
     wordlist = "/usr/share/wordlists/dirb/common.txt"
     if os.path.exists(wordlist):
-        run_step(3, "Path Discovery", f"ffuf -u {full_url}/FUZZ -w {wordlist} -mc 200,301,302 -t 40 -o {raw_dir}/ffuf_results.json -s")
-    
-    # Smart Reporting
+        # Removed -s for visual feedback as requested
+        run_step(3, "Path Discovery", 
+                 f"ffuf -u {full_url}/FUZZ -w {wordlist} -mc 200,301,302 -t 40 -o {raw_dir}/ffuf_results.json")
+    else:
+        print(f"{ERROR}[!] Wordlist missing at {wordlist}{RESET}")
+
     create_smart_report(base_dir, raw_dir, target)
-    print(f"\n{ACCENT}{BOLD}★ Mission Accomplished ★{RESET}")
+    print(f"\n{PRIMARY}{BOLD}★ Mission Accomplished. Check {base_dir}/Executive_Summary.md ★{RESET}")
 
 if __name__ == "__main__":
     main()
