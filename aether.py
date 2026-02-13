@@ -16,15 +16,21 @@ BOLD, RESET = '\033[1m', '\033[0m'
 def show_banner():
     """Display the enhanced V6.0 ASCII banner"""
     os.system('clear' if os.name == 'posix' else 'cls')
-    print(f"{PRIMARY}{BOLD}" + "═"*65 + f"\n" + r"""
-    ___     ______ ______  __  __ ______ ____  
-   /   |   / ____//_  __/ / / / // ____// __ \ 
-  / /| |  / __/    / /   / /_/ // __/  / /_/ / 
- / ___ | / /___   / /   / __  // /___ / _, _/  
+    banner = f"{PRIMARY}{BOLD}" + "═"*65 + f"\n" + r"""
+    ___    ______ ______  __  __ ______ ____  
+   /   |  / ____//_  __/ / / / // ____// __ \ 
+  / /| | / __/    / /   / /_/ // __/  / /_/ / 
+ / ___ |/ /___   / /   / __  // /___ / _, _/  
 /_/  |_|/_____/  /_/   /_/ /_//_____//_/ |_|   
                                                
-          V5.0 | Professional Recon Suite
-""" + "═"*65 + f"{RESET}")
+           [ Professional Recon Suite V5.0 ]
+   🔍 Scanning for vulnerabilities and insights...
+ ═════════════════════════════════════════════════════
+    """
+    print(banner)
+    now = datetime.now().strftime("%H:%M:%S")
+    print(f"{SECONDARY} » System Ready | {now} | {RESET}{SUCCESS}Online{RESET}")
+    print(f"{SECONDARY} ═════════════════════════════════════════════════════{RESET}\n")
 
 def check_dependencies():
     """Smart check with Force-Run capability"""
@@ -102,7 +108,6 @@ def generate_report(base_dir, target):
             if os.path.exists(f"{raw_dir}/nmap_scan.txt"):
                 with open(f"{raw_dir}/nmap_scan.txt", 'r') as nmap:
                     content = nmap.read()
-                    # Simple grep for open ports
                     ports = [line for line in content.splitlines() if "/tcp" in line and "open" in line]
                     if ports:
                         for p in ports: f.write(f"- `{p}`\n")
@@ -141,17 +146,19 @@ def main():
             print(f"{ERROR}[!] Aborted by user.{RESET}")
             sys.exit(1)
         
-        # 2. Target Input
-        raw_input = input(f"{SECONDARY}{BOLD}» Target Host: {RESET}").strip()
-        if not raw_input: return
+        # 2. Target Input with retry logic
+        while True:
+            raw_input = input(f"{SECONDARY}{BOLD}» Target Host: {RESET}").strip()
+            if not raw_input: continue
 
-        target = raw_input.split()[0].rstrip('/')
-        host_only = target.replace("http://", "").replace("https://", "").split('/')[0].split(':')[0]
-        
-        # 3. Connectivity Pre-check
-        if not is_resolvable(host_only):
-            print(f"{ERROR}[!] Resolution Error: Could not resolve '{host_only}'. Check connection.{RESET}")
-            return
+            target = raw_input.split()[0].rstrip('/')
+            host_only = target.replace("http://", "").replace("https://", "").split('/')[0].split(':')[0]
+            
+            # 3. Connectivity Pre-check
+            if is_resolvable(host_only):
+                break
+            else:
+                print(f"{ERROR}[!] Resolution Error: Could not resolve '{host_only}'. Please try again.{RESET}")
 
         # 4. Workspace Setup
         base_dir = get_next_scan_dir()
@@ -181,7 +188,6 @@ def main():
     except KeyboardInterrupt:
         print(f"\n\n{ERROR}[!] Interrupted by user.{RESET}")
         
-        # Check if folder was created
         if base_dir and os.path.exists(base_dir):
             choice = input(f"{ACCENT}[?] Scan incomplete. Delete session folder '{base_dir}'? (Y/n): {RESET}").lower()
             if choice in ['y', '']:
