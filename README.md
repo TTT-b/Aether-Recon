@@ -3,31 +3,35 @@ Aether is a modular, automated reconnaissance framework designed for fast and ef
 
 Built for Security Researchers, Pentesters, and Bug Bounty Hunters who need a streamlined, automated workflow to kickstart their recon phase.
 
-🚀 Key Features
+🚀 Features
 Technology Fingerprinting: Leverages WhatWeb to identify CMS, frameworks, and web server details.
 
 Service Discovery: Uses Nmap for rapid port scanning and service version detection.
 
-Path Fuzzing: Integrated FFUF engine with Live Output for directory and file brute-forcing.
+Path Fuzzing: Integrated FFUF engine with Live Output for real-time directory and file brute-forcing.
 
 Smart Dependency Check: Automatically detects missing/broken tools and offers to repair or install them.
 
 Executive Reporting: Generates a smart Markdown summary that extracts the most important findings (Open ports, Tech stack, etc.) for quick review.
 
-Recon Blue UI: Professional, high-contrast CLI interface.
+Recon Blue UI: Professional, high-contrast CLI interface designed for terminal efficiency.
 
 🛠 Dependencies
-Good News: Aether automatically checks for these tools and will offer to install them for you!
+Good News: Aether automatically checks for these tools and will offer to install/repair them for you!
 
-Nmap: Port scanning
+For transparency, here is the list of tools Aether utilizes:
 
-WhatWeb: Technology fingerprinting
+Nmap: Service and port scanning.
 
-FFUF: Directory fuzzing
+WhatWeb: Deep technology fingerprinting.
 
-Python 3: Runtime environment
+FFUF: High-speed directory fuzzing.
 
-📥 Installation & Setup
+Python 3: Core runtime environment.
+
+Note: This tool is optimized for Kali Linux but works on any Debian-based system.
+
+📥 Installation
 Clone the repository:
 
 Bash
@@ -37,25 +41,18 @@ Grant execution permissions:
 
 Bash
 chmod +x aether.py
-Run the suite:
+💻 Usage
+Run the suite using Python 3:
 
 Bash
 python3 aether.py
-💻 Usage
-Once launched, simply follow the on-screen prompts:
+🔍 How it works:
+Follow the on-screen prompt to enter your Target Host (e.g., example.com).
 
-Enter your Target Host (e.g., example.com).
+Watch the automated engines run in sequence with live feedback.
 
-Watch the automated engines (WhatWeb, Nmap, FFUF) run in sequence.
+Access your results in the session folder:
 
-Access your results in the newly created session folder:
+Executive_Summary.md: Your "Smart" human-readable summary.
 
-Executive_Summary.md: Your "Smart" summary.
-
-raw_logs/: Full output files from all tools.
-
-⚠️ Disclaimer
-This tool is for educational purposes and authorized testing only.
-Do not use this tool on any system or network without explicit permission. The author is not responsible for any illegal use or damage caused by this tool.
-
-Happy Hacking! 🕵️‍♂️
+raw_logs/: Full, unedited output files from all tools for deep analysis.
