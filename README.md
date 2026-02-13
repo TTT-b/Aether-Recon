@@ -1,62 +1,61 @@
-# 🌌 Aether Recon Suite V3.5
+🌌 Aether Recon Suite V4.1
+Aether is a modular, automated reconnaissance framework designed for fast and effective passive fingerprinting, service discovery, and path enumeration.
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
-![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
-![License](https://img.shields.io/badge/License-MIT-green)
+Built for Security Researchers, Pentesters, and Bug Bounty Hunters who need a streamlined, automated workflow to kickstart their recon phase.
 
-**Aether** is a modular, automated reconnaissance framework designed for fast and effective passive fingerprinting, service discovery, and path enumeration.
+🚀 Key Features
+Technology Fingerprinting: Leverages WhatWeb to identify CMS, frameworks, and web server details.
 
-Built for **Security Researchers**, **Pentesters**, and **Bug Bounty Hunters** who need a streamlined workflow to kickstart their recon phase.
+Service Discovery: Uses Nmap for rapid port scanning and service version detection.
 
----
+Path Fuzzing: Integrated FFUF engine with Live Output for directory and file brute-forcing.
 
-## 🚀 Features
+Smart Dependency Check: Automatically detects missing/broken tools and offers to repair or install them.
 
-- **Technology Fingerprinting**: Leverages `WhatWeb` to identify CMS, frameworks, and web server details.
-- **Service Discovery**: Uses `Nmap` for rapid port scanning and service version detection.
-- **Path Fuzzing**: Integrated `FFUF` engine for lightning-fast directory and file brute-forcing.
-- **Smart Dependency Check**: Automatically detects missing tools and offers to install them for you.
-- **Automated Reporting**: Generates a clean Markdown summary for every scan.
-- **Modern UI**: High-contrast, color-coded CLI interface for better readability.
+Executive Reporting: Generates a smart Markdown summary that extracts the most important findings (Open ports, Tech stack, etc.) for quick review.
 
----
+Recon Blue UI: Professional, high-contrast CLI interface.
 
-## 🛠 Dependencies
+🛠 Dependencies
+Good News: Aether automatically checks for these tools and will offer to install them for you!
 
-**Good News:** Aether automatically checks for these tools and will ask to install them if they are missing! 
+Nmap: Port scanning
 
-For transparency, here is the list of tools Aether utilizes:
-- **Nmap**: Port scanning
-- **WhatWeb**: Technology fingerprinting
-- **FFUF**: Directory fuzzing
-- **Python 3**: Runtime environment
+WhatWeb: Technology fingerprinting
 
-*Note: This tool is optimized for Kali Linux but works on any Debian-based system.*
+FFUF: Directory fuzzing
 
----
+Python 3: Runtime environment
 
-## 📥 Installation
+📥 Installation & Setup
+Clone the repository:
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/TTT-b/Aether-Recon.git
-   cd Aether-Recon
-   chmod +x aether.py
-   
-Make the script executable (Optional):
+Bash
+git clone https://github.com/TTT-b/Aether-Recon.git
+cd Aether-Recon
+Grant execution permissions:
 
 Bash
 chmod +x aether.py
-💻 Usage
-Run the tool using Python 3:
+Run the suite:
 
 Bash
 python3 aether.py
-Follow the on-screen prompt to enter your target domain (e.g., example.com).
-Results will be saved in a timestamped folder named Aether_TARGET_TIME.
+💻 Usage
+Once launched, simply follow the on-screen prompts:
+
+Enter your Target Host (e.g., example.com).
+
+Watch the automated engines (WhatWeb, Nmap, FFUF) run in sequence.
+
+Access your results in the newly created session folder:
+
+Executive_Summary.md: Your "Smart" summary.
+
+raw_logs/: Full output files from all tools.
 
 ⚠️ Disclaimer
 This tool is for educational purposes and authorized testing only.
-Do not use this tool on any system or network without explicit permission from the owner. The author is not responsible for any illegal use or damage caused by this tool.
+Do not use this tool on any system or network without explicit permission. The author is not responsible for any illegal use or damage caused by this tool.
 
 Happy Hacking! 🕵️‍♂️
