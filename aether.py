@@ -24,7 +24,7 @@ def show_banner():
 ██╔══██║██╔══╝     ██║   ██╔══██║██╔══╝  ██╔══██╗
 ██║  ██║███████╗   ██║   ██║  ██║███████╗██║  ██║
 ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-         V4.1 | Professional Recon Edition
+         V4.2 | Professional Recon Edition
 """ + "═"*65 + f"{RESET}")
 
 def check_dependencies():
@@ -42,6 +42,13 @@ def check_dependencies():
             os.system(f"sudo apt-get install --reinstall -y {t}")
         return True
     return False
+
+def get_next_scan_dir():
+    """Finds the next available directory name: Aether_scan_1, 2, etc."""
+    counter = 1
+    while os.path.exists(f"Aether_scan_{counter}"):
+        counter += 1
+    return f"Aether_scan_{counter}"
 
 def run_step(step_num, title, command):
     print(f"{PRIMARY}{BOLD}┌──[Step {step_num}/3] {title}{RESET}")
@@ -68,7 +75,6 @@ def parse_whatweb(file_path):
     if os.path.exists(file_path):
         with open(file_path, 'r') as f:
             content = f.read().strip()
-            # Basic cleanup of the WhatWeb output for the report
             return content.split(" [200 OK] ")[-1] if " [200 OK] " in content else content[:100]
     return "No technology data found."
 
@@ -81,11 +87,10 @@ def parse_ffuf(file_path):
                 for res in data.get('results', []):
                     found_paths.append(f"/{res['input']['FUZZ']} (Status: {res['status']})")
         except: pass
-    return found_paths[:10] # Return top 10 findings
+    return found_paths[:10]
 
 def create_smart_report(base_dir, raw_dir, target):
     report_path = f"{base_dir}/Executive_Summary.md"
-    
     ports = parse_nmap(f"{raw_dir}/nmap_scan.txt")
     tech = parse_whatweb(f"{raw_dir}/tech_stack.txt")
     paths = parse_ffuf(f"{raw_dir}/ffuf_results.json")
@@ -93,17 +98,14 @@ def create_smart_report(base_dir, raw_dir, target):
     with open(report_path, 'w') as f:
         f.write(f"# 🛡️ Aether Recon Report: {target}\n")
         f.write(f"**Scan Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-        
         f.write("## 🌐 Network Services\n")
         if ports:
             for p in ports: f.write(f"- `{p}`\n")
         else: f.write("- No open ports found.\n")
         f.write(f"\n> **Quick View:** `cat {raw_dir}/nmap_scan.txt`\n\n")
-        
         f.write("## 🛠️ Technology Stack\n")
         f.write(f"```\n{tech}\n```\n")
         f.write(f"\n> **Quick View:** `cat {raw_dir}/tech_stack.txt`\n\n")
-        
         f.write("## 📂 Top Discovered Paths\n")
         if paths:
             for path in paths: f.write(f"- {path}\n")
@@ -119,13 +121,15 @@ def main():
     target = input(f"{SECONDARY}{BOLD}» Target Host (e.g. example.com): {RESET}").strip()
     if not target: return
 
-    host_clean = target.replace("http://", "").replace("https://", "").split('/')[0]
-    folder_name = host_clean.replace(".", "_")
-    base_dir = f"Aether_{folder_name}_{datetime.now().strftime('%H%M')}"
+    # Sequential Naming Logic
+    base_dir = get_next_scan_dir()
     raw_dir = f"{base_dir}/raw_logs"
     
     os.makedirs(raw_dir, exist_ok=True)
+    print(f"{SECONDARY}[ℹ] Session organized in: {base_dir}{RESET}\n")
+
     full_url = target if target.startswith("http") else f"http://{target}"
+    host_clean = target.replace("http://", "").replace("https://", "").split('/')[0]
 
     # Step 1: Tech Stack
     run_step(1, "Technology Fingerprinting", 
@@ -135,10 +139,9 @@ def main():
     run_step(2, "Service Discovery", 
              f"nmap -sV -F {host_clean} -oN {raw_dir}/nmap_scan.txt")
     
-    # Step 3: FFUF (Now with Live Output)
+    # Step 3: FFUF
     wordlist = "/usr/share/wordlists/dirb/common.txt"
     if os.path.exists(wordlist):
-        # Removed -s for visual feedback as requested
         run_step(3, "Path Discovery", 
                  f"ffuf -u {full_url}/FUZZ -w {wordlist} -mc 200,301,302 -t 40 -o {raw_dir}/ffuf_results.json")
     else:
@@ -148,4 +151,9 @@ def main():
     print(f"\n{PRIMARY}{BOLD}★ Mission Accomplished. Check {base_dir}/Executive_Summary.md ★{RESET}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(f"\n\n{ERROR}[!] Execution cancelled by user (Ctrl+C).{RESET}")
+        print(f"{ACCENT}[ℹ] Cleaning up... Partial logs might be saved in the session folder.{RESET}")
+        sys.exit(0)
