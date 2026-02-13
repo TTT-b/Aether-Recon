@@ -28,8 +28,7 @@ def show_banner():
  ═════════════════════════════════════════════════════
     """
     print(banner)
-    now = datetime.now().strftime("%H:%M:%S")
-    print(f"{SECONDARY} » System Ready | {now} | {RESET}{SUCCESS}Online{RESET}")
+    print(f"{SECONDARY} » System Ready | {RESET}{SUCCESS}Online{RESET}")
     print(f"{SECONDARY} ═════════════════════════════════════════════════════{RESET}\n")
 
 def check_dependencies():
