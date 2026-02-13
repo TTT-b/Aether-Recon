@@ -27,14 +27,9 @@ def show_banner():
 """ + "═"*65 + f"{RESET}")
 
 def check_dependencies():
-    """Smart check for required system binaries using PATH resolution"""
+    """Check for required system binaries"""
     tools = ['nmap', 'ffuf', 'whatweb']
-    missing = []
-    
-    for tool in tools:
-        # Check if the tool exists in the system PATH
-        if shutil.which(tool) is None:
-            missing.append(tool)
+    missing = [t for t in tools if shutil.which(t) is None]
             
     if not missing:
         return True
@@ -42,9 +37,7 @@ def check_dependencies():
     print(f"{ERROR}[!] Missing dependencies: {', '.join(missing)}{RESET}")
     choice = input(f"{ACCENT}[?] Attempt auto-install via APT? (Y/n): {RESET}").lower()
     if choice in ['y', '']:
-        print(f"{ACCENT}[*] Updating repositories and installing components...{RESET}")
         os.system("sudo apt-get update -y && sudo apt-get install -y " + " ".join(missing))
-        # Final verification after installation attempt
         return all(shutil.which(t) is not None for t in tools)
     return False
 
@@ -57,14 +50,14 @@ def is_resolvable(host):
         return False
 
 def get_next_scan_dir():
-    """Generate a sequential directory name for the session"""
+    """Generate a sequential directory name"""
     counter = 1
     while os.path.exists(f"Aether_scan_{counter}"):
         counter += 1
     return f"Aether_scan_{counter}"
 
 def run_step(step_num, title, command, timeout=300):
-    """Execute a scan step with standardized output and error handling"""
+    """Execute a scan step with standardized output"""
     print(f"{PRIMARY}{BOLD}┌──[Step {step_num}/3] {title}{RESET}")
     print(f"{ACCENT}│ Running...{RESET}")
     start = time.time()
@@ -89,4 +82,16 @@ def main():
     raw_input = input(f"{SECONDARY}{BOLD}» Target Host: {RESET}").strip()
     if not raw_input: return
 
-    # Extracting the domain/IP from potentially
+    # Cleaning input
+    target = raw_input.split()[0].rstrip('/')
+    host_only = target.replace("http://", "").replace("https://", "").split('/')[0].split(':')[0]
+    
+    # 3. Connectivity Pre-check
+    if not is_resolvable(host_only):
+        print(f"{ERROR}[!] Resolution Error: Could not resolve '{host_only}'. Check connection.{RESET}")
+        return
+
+    # 4. Workspace Setup
+    base_dir = get_next_scan_dir()
+    raw_dir = f"{base_dir}/raw_logs"
+    os.makedirs(raw_dir, exist_ok=True)
