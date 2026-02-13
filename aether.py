@@ -30,17 +30,50 @@ def show_banner():
     print(f"{SECONDARY}[ℹ] Strategy: Passive Fingerprinting & Path Discovery{RESET}\n")
 
 def check_dependencies():
+    """
+    Checks for required tools and attempts to install them if missing.
+    """
     tools = ['nmap', 'ffuf', 'whatweb']
     missing = []
+    
+    # Check existence
     for tool in tools:
         if subprocess.call(f"which {tool}", shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) != 0:
             missing.append(tool)
     
-    if missing:
-        print(f"{ERROR}[!] Missing dependencies: {', '.join(missing)}{RESET}")
-        print(f"{SECONDARY}[ℹ] Please install them: sudo apt install {' '.join(missing)}{RESET}\n")
+    if not missing:
+        return True
+
+    # Report missing tools
+    print(f"{ERROR}[!] Missing dependencies: {', '.join(missing)}{RESET}")
+    
+    # Prompt for auto-installation
+    try:
+        choice = input(f"{ACCENT}» Would you like to install them automatically? (Y/n): {RESET}").strip().lower()
+        if choice in ['y', 'yes', '']:
+            print(f"{SECONDARY}[ℹ] Attempting installation (sudo privileges required)...{RESET}")
+            
+            # Update apt cache once
+            subprocess.call("sudo apt-get update", shell=True)
+            
+            for tool in missing:
+                print(f"{SECONDARY}[+] Installing {tool}...{RESET}")
+                install_cmd = f"sudo apt-get install -y {tool}"
+                exit_code = os.system(install_cmd)
+                
+                if exit_code != 0:
+                    print(f"{ERROR}[!] Failed to install {tool}. Please install manually.{RESET}")
+                    return False
+            
+            print(f"{SUCCESS}[+] All dependencies installed successfully!{RESET}\n")
+            return True
+        else:
+            print(f"{ERROR}[!] Cannot proceed without required tools.{RESET}")
+            return False
+            
+    except KeyboardInterrupt:
+        print(f"\n{ERROR}[!] Installation cancelled.{RESET}")
         return False
-    return True
 
 def run_step(step_num, title, command, wait_msg=None):
     print(f"{PRIMARY}{BOLD}┌──[Step {step_num}/3] {title}{RESET}")
@@ -107,7 +140,7 @@ def main():
                  "Scanning Top 100 ports...")
 
         # --- Step 3: Directory Fuzzing ---
-        # שינינו לנתיב הסטנדרטי של קאלי
+        # Default Kali path for wordlists
         wordlist = "/usr/share/wordlists/dirb/common.txt" 
         if os.path.exists(wordlist):
             run_step(3, "Directory Fuzzing",
