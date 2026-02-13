@@ -27,9 +27,14 @@ def show_banner():
 """ + "═"*65 + f"{RESET}")
 
 def check_dependencies():
-    """Check for required system binaries"""
+    """Smart check for required system binaries using PATH resolution"""
     tools = ['nmap', 'ffuf', 'whatweb']
-    missing = [t for t in tools if shutil.which(t) is None]
+    missing = []
+    
+    for tool in tools:
+        # Check if the tool exists in the system PATH
+        if shutil.which(tool) is None:
+            missing.append(tool)
             
     if not missing:
         return True
@@ -37,7 +42,9 @@ def check_dependencies():
     print(f"{ERROR}[!] Missing dependencies: {', '.join(missing)}{RESET}")
     choice = input(f"{ACCENT}[?] Attempt auto-install via APT? (Y/n): {RESET}").lower()
     if choice in ['y', '']:
+        print(f"{ACCENT}[*] Updating repositories and installing components...{RESET}")
         os.system("sudo apt-get update -y && sudo apt-get install -y " + " ".join(missing))
+        # Final verification after installation attempt
         return all(shutil.which(t) is not None for t in tools)
     return False
 
@@ -50,14 +57,14 @@ def is_resolvable(host):
         return False
 
 def get_next_scan_dir():
-    """Generate a sequential directory name"""
+    """Generate a sequential directory name for the session"""
     counter = 1
     while os.path.exists(f"Aether_scan_{counter}"):
         counter += 1
     return f"Aether_scan_{counter}"
 
 def run_step(step_num, title, command, timeout=300):
-    """Execute a scan step with standardized output"""
+    """Execute a scan step with standardized output and error handling"""
     print(f"{PRIMARY}{BOLD}┌──[Step {step_num}/3] {title}{RESET}")
     print(f"{ACCENT}│ Running...{RESET}")
     start = time.time()
@@ -82,7 +89,7 @@ def main():
     raw_input = input(f"{SECONDARY}{BOLD}» Target Host: {RESET}").strip()
     if not raw_input: return
 
-    # Cleaning input
+    # Extracting the domain/IP from potentially noisy input
     target = raw_input.split()[0].rstrip('/')
     host_only = target.replace("http://", "").replace("https://", "").split('/')[0].split(':')[0]
     
@@ -95,3 +102,28 @@ def main():
     base_dir = get_next_scan_dir()
     raw_dir = f"{base_dir}/raw_logs"
     os.makedirs(raw_dir, exist_ok=True)
+    
+    print(f"{SECONDARY}[ℹ] Session: {base_dir} | Target: {host_only}{RESET}\n")
+    full_url = target if target.startswith("http") else f"http://{target}"
+
+    # 5. Execution Pipeline
+    run_step(1, "Technology Fingerprinting", f"whatweb -a 3 {full_url} --color=never > {raw_dir}/tech_stack.txt")
+    run_step(2, "Service Discovery", f"nmap -sV -F {host_only} -oN {raw_dir}/nmap_scan.txt")
+    
+    # Check for common wordlist location
+    wordlist = "/usr/share/wordlists/dirb/common.txt"
+    if os.path.exists(wordlist):
+        run_step(3, "Path Discovery", f"ffuf -u {full_url}/FUZZ -w {wordlist} -mc 200,301,302 -t 40 -o {raw_dir}/ffuf_results.json")
+    else:
+        print(f"{ACCENT}[!] Wordlist not found at {wordlist}. Skipping Path Discovery.{RESET}")
+
+    print(f"\n{PRIMARY}{BOLD}★ Mission Accomplished ★{RESET}")
+    print(f"{SECONDARY}[ℹ] Results saved in: {base_dir}{RESET}")
+
+# --- זה החלק שהיה חסר לך! ---
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(f"\n\n{ERROR}[!] Interrupted by user. Shutting down gracefully.{RESET}")
+        sys.exit(0)
