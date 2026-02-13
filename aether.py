@@ -28,7 +28,7 @@ def show_banner():
  ═════════════════════════════════════════════════════
     """
     print(banner)
-    print(f"{SECONDARY} » System Ready | {RESET}{SUCCESS}Online{RESET}")
+    print(f"{SECONDARY} » System Ready (type 'exit' to quit) | {RESET}{SUCCESS}Online{RESET}")
     print(f"{SECONDARY} ═════════════════════════════════════════════════════{RESET}\n")
 
 def check_dependencies():
@@ -146,7 +146,7 @@ def main():
         
         # 2. Target Input with retry/exit logic
         while True:
-            raw_input = input(f"{SECONDARY}{BOLD}» Target Host (type 'exit' to quit): {RESET}").strip()
+            raw_input = input(f"{SECONDARY}{BOLD}» Target Host: {RESET}").strip()
             if not raw_input: continue
             if raw_input.lower() in ['exit', 'quit']:
                 print(f"{ACCENT}[*] Exiting Aether...{RESET}")
