@@ -5,197 +5,229 @@ import time
 import subprocess
 import json
 import shutil
-import re
 import socket
 from datetime import datetime
 
+# --- CONFIGURATION ---
+ABUSEIPDB_KEY = "40e57a16c83beecad28a63eed160a380d227bb5e047d1e87824513686368b1ae30eb958516064458"
+
 # --- Aether Visual Palette ---
-PRIMARY, SECONDARY, SUCCESS, ACCENT, ERROR = '\033[38;5;33m', '\033[38;5;45m', '\033[38;5;82m', '\033[38;5;202m', '\033[38;5;196m'
-BOLD, RESET = '\033[1m', '\033[0m'
+PRIMARY = '\033[38;5;33m'   # Blue
+SECONDARY = '\033[38;5;45m' # Light Blue
+SUCCESS = '\033[38;5;82m'   # Green
+ACCENT = '\033[38;5;202m'   # Orange
+ERROR = '\033[38;5;196m'    # Red
+BOLD = '\033[1m'
+RESET = '\033[0m'
 
 def show_banner():
-    """Display the enhanced V6.0 ASCII banner"""
+    """Display the AETHER banner"""
     os.system('clear' if os.name == 'posix' else 'cls')
     banner = f"{PRIMARY}{BOLD}" + "═"*65 + f"\n" + r"""
-    ___     ______ ______  __  __ ______ ____  
-   /   |   / ____//_  __/ / / / // ____// __ \ 
-  / /| |  / __/    / /   / /_/ // __/  / /_/ / 
- / ___ | / /___   / /   / __  // /___ / _, _/  
-/_/  |_|/_____/  /_/   /_/ /_//_____//_/ |_|   
-                                               
-           [ Professional Recon Suite V5.0 ]
-     Scanning for vulnerabilities and insights...
+    ___      ______ ______  __  __ ______ ____  
+   /   |    / ____//_   __/ / / / // ____// __ \ 
+  / /| |   / __/    / /    / /_/ // __/  / /_/ / 
+ / ___ |  / /___   / /    / __  // /___ / _, _/  
+/_/  |_| /_____/  /_/    /_/ /_//_____//_/ |_|   
+                                                 
+           [ SOC Analyst Edition V6.0 ]
+   Integrates: Network Recon | Web Enum | Threat Intel
  ═════════════════════════════════════════════════════
     """
     print(banner)
-    print(f"{SECONDARY} » System Ready (type 'exit' to quit) | {RESET}{SUCCESS}Online{RESET}")
-    print(f"{SECONDARY} ═════════════════════════════════════════════════════{RESET}\n")
 
 def check_dependencies():
-    """Smart check with Force-Run capability"""
-    tools = ['nmap', 'ffuf', 'whatweb']
+    """Checks for tools and prompts for auto-installation."""
+    tools = ['nmap', 'ffuf', 'whatweb', 'curl']
     missing = [t for t in tools if shutil.which(t) is None]
-            
+    
     if not missing:
         return True
         
-    print(f"{ERROR}[!] Missing or undetected dependencies: {', '.join(missing)}{RESET}")
+    print(f"{ERROR}[!] Missing dependencies: {', '.join(missing)}{RESET}")
     
-    choice = input(f"{ACCENT}[?] Attempt auto-install via APT? (Y/n): {RESET}").lower()
-    if choice in ['y', '']:
-        print(f"{ACCENT}[*] Fixing/Installing components...{RESET}")
-        os.system("sudo apt-get update -y && sudo apt-get install --reinstall -y " + " ".join(missing))
-    
-    still_missing = [t for t in tools if shutil.which(t) is None]
-    if still_missing:
-        print(f"\n{ERROR}[!] Warning: Tools still checking as missing: {', '.join(still_missing)}{RESET}")
-        force = input(f"{ACCENT}[?] Proceed anyway (Force Run)? (Y/n): {RESET}").lower()
-        if force in ['y', '']: return True
-        return False
-    return True
-
-def is_resolvable(host):
-    """Verify DNS resolution"""
+    # Ask user for auto-install
     try:
-        socket.gethostbyname(host)
-        return True
-    except socket.gaierror:
-        return False
+        choice = input(f"{ACCENT}[?] Attempt auto-install via APT? (Y/n): {RESET}").lower()
+        if choice in ['y', 'yes', '']:
+            print(f"{SECONDARY}[*] Running installation... (Requires Sudo){RESET}")
+            
+            # Construct command: sudo apt-get update && sudo apt-get install -y <tools>
+            cmd = "sudo apt-get update && sudo apt-get install -y " + " ".join(missing)
+            os.system(cmd)
+            
+            # Verify installation success
+            still_missing = [t for t in tools if shutil.which(t) is None]
+            if not still_missing:
+                print(f"{SUCCESS}[+] Installation successful. Proceeding...{RESET}\n")
+                time.sleep(1)
+                return True
+            else:
+                print(f"{ERROR}[!] Installation failed for: {', '.join(still_missing)}{RESET}")
+                return False
+        else:
+            print(f"{SECONDARY}[ℹ] Please install manually: sudo apt install {' '.join(missing)}{RESET}")
+            return False
+    except KeyboardInterrupt:
+        sys.exit(0)
+
+def get_ip_reputation(target_ip):
+    print(f"\n{PRIMARY}{BOLD}┌──[ Threat Intel ] Checking Reputation for {target_ip}...{RESET}")
+    cmd = [
+        'curl', '-s', '-G', 'https://api.abuseipdb.com/api/v2/check',
+        '--data-urlencode', f'ipAddress={target_ip}',
+        '-d', 'maxAgeInDays=90',
+        '-H', f'Key: {ABUSEIPDB_KEY}',
+        '-H', 'Accept: application/json'
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        data = json.loads(result.stdout)
+        if 'errors' in data:
+            print(f"{ERROR}└─╼ API Error: {data['errors'][0]['detail']}{RESET}")
+            return
+        data = data['data']
+        score = data['abuseConfidenceScore']
+        score_color = SUCCESS if score < 10 else (ACCENT if score < 50 else ERROR)
+        print(f"{SECONDARY}│  {BOLD}ISP:{RESET} {data['isp']}")
+        print(f"{SECONDARY}│  {BOLD}Country:{RESET} {data['countryCode']}")
+        print(f"{SECONDARY}│  {BOLD}Total Reports:{RESET} {data['totalReports']}")
+        print(f"{score_color}└─╼ Abuse Score: {score}% {RESET}\n")
+    except:
+        print(f"{ERROR}└─╼ Failed to fetch threat intel.{RESET}\n")
 
 def get_next_scan_dir():
-    """Sequential directory naming"""
     counter = 1
-    while os.path.exists(f"Aether_scan_{counter}"):
-        counter += 1
+    while os.path.exists(f"Aether_scan_{counter}"): counter += 1
     return f"Aether_scan_{counter}"
 
-def run_step(step_num, title, command, timeout=300):
-    """Run a command with visual feedback"""
-    print(f"{PRIMARY}{BOLD}┌──[Step {step_num}/3] {title}{RESET}")
+def run_step(step_num, title, command):
+    """
+    Runs a command. If Ctrl+C is pressed, asks user whether to skip step or abort all.
+    Returns: True if completed, False if skipped, Raises KeyboardInterrupt if abort.
+    """
+    print(f"{PRIMARY}{BOLD}┌──[Step {step_num}] {title}{RESET}")
     print(f"{ACCENT}│ Running...{RESET}")
-    start = time.time()
     try:
-        subprocess.run(command, shell=True, check=True, timeout=timeout)
-        duration = round(time.time() - start, 2)
-        print(f"{SUCCESS}└─╼ Completed in {duration}s.{RESET}\n")
+        subprocess.run(command, shell=True, check=True)
+        print(f"{SUCCESS}└─╼ Completed.{RESET}\n")
         return True
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-        print(f"{ERROR}└─╼ Step failed or interrupted. Proceeding...{RESET}\n")
+    except KeyboardInterrupt:
+        print(f"\n{ACCENT}[!] Step interrupted.{RESET}")
+        choice = input(f"{SECONDARY}   » Skip this step only? (y/N - Abort Scan): {RESET}").lower()
+        if choice == 'y':
+            print(f"{ACCENT}   » Skipping to next step...{RESET}\n")
+            return False # Continue to next step
+        else:
+            raise KeyboardInterrupt # Propagate 'Abort' to main
+    except subprocess.CalledProcessError:
+        print(f"{ERROR}└─╼ Step failed (Tool Error).{RESET}\n")
         return False
 
-def generate_report(base_dir, target):
-    """Generates the Executive Summary Markdown file"""
-    report_path = f"{base_dir}/Summary_Report.md"
-    raw_dir = f"{base_dir}/raw_logs"
-    
-    try:
-        with open(report_path, 'w') as f:
-            f.write(f"#  Aether Recon Report: {target}\n")
-            f.write(f"**Scan Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write("---\n\n")
-            
-            # 1. Tech Stack
-            f.write("##  Technology Stack\n")
-            if os.path.exists(f"{raw_dir}/tech_stack.txt"):
-                with open(f"{raw_dir}/tech_stack.txt", 'r') as tech:
-                    f.write(f"```\n{tech.read().strip()[:500]}\n```\n")
-            else:
-                f.write("_No data collected._\n")
-
-            # 2. Open Ports
-            f.write("\n##  Open Ports & Services\n")
-            if os.path.exists(f"{raw_dir}/nmap_scan.txt"):
-                with open(f"{raw_dir}/nmap_scan.txt", 'r') as nmap:
-                    content = nmap.read()
-                    ports = [line for line in content.splitlines() if "/tcp" in line and "open" in line]
-                    if ports:
-                        for p in ports: f.write(f"- `{p}`\n")
-                    else:
-                        f.write("_No open ports found or scan failed._\n")
-            
-            # 3. Directories
-            f.write("\n##  Discovered Paths (Top 5)\n")
-            if os.path.exists(f"{raw_dir}/ffuf_results.json"):
-                try:
-                    with open(f"{raw_dir}/ffuf_results.json", 'r') as ffuf:
-                        data = json.load(ffuf)
-                        count = 0
-                        for res in data.get('results', []):
-                            if count < 5:
-                                f.write(f"- `/{res['input']['FUZZ']}` (Status: {res['status']})\n")
-                                count += 1
-                except: f.write("_Error parsing JSON._\n")
-            else:
-                f.write("_No paths found._\n")
-                
-        print(f"{SUCCESS}[+] Executive Summary generated: {report_path}{RESET}")
-        
-    except Exception as e:
-        print(f"{ERROR}[!] Failed to generate report: {e}{RESET}")
-
 def main():
-    show_banner()
-    
-    base_dir = None
-
     try:
-        # 1. Dependency Validation
-        if not check_dependencies(): 
-            print(f"{ERROR}[!] Aborted by user.{RESET}")
-            sys.exit(1)
-        
-        # 2. Target Input with retry/exit logic
+        # Check dependencies first. If failed or denied, exit.
+        if not check_dependencies(): sys.exit(1)
+
         while True:
-            raw_input = input(f"{SECONDARY}{BOLD}» Target Host: {RESET}").strip()
-            if not raw_input: continue
-            if raw_input.lower() in ['exit', 'quit']:
-                print(f"{ACCENT}[*] Exiting Aether...{RESET}")
+            show_banner()
+            print(f"{BOLD}Select Operation Mode:{RESET}")
+            print(f"  {PRIMARY}[1]{RESET} Stealth Recon    (Slow, Quiet, -T2)")
+            print(f"  {PRIMARY}[2]{RESET} Standard Recon   (Default, -sV)")
+            print(f"  {PRIMARY}[3]{RESET} Aggressive Recon (Loud, Full Scan, -A)")
+            print(f"  {ACCENT}[4]{RESET} Threat Intel Check (API Only)")
+            print(f"  {ERROR}[exit]{RESET} Quit Aether")
+            
+            # --- SAFE INPUT HANDLING ---
+            try:
+                mode = input(f"\n{SECONDARY}{BOLD}» Select Mode: {RESET}").strip().lower()
+            except KeyboardInterrupt:
                 sys.exit(0)
 
-            target = raw_input.split()[0].rstrip('/')
-            host_only = target.replace("http://", "").replace("https://", "").split('/')[0].split(':')[0]
-            
-            # 3. Connectivity Pre-check
-            if is_resolvable(host_only):
+            if mode in ['exit', 'quit']:
+                print(f"{ACCENT}[*] Exiting Aether.{RESET}")
                 break
-            else:
-                print(f"{ERROR}[!] Resolution Error: Could not resolve '{host_only}'. Please try again.{RESET}")
 
-        # 4. Workspace Setup
-        base_dir = get_next_scan_dir()
-        raw_dir = f"{base_dir}/raw_logs"
-        os.makedirs(raw_dir, exist_ok=True)
-        
-        print(f"{SECONDARY}[ℹ] Session: {base_dir} | Target: {host_only}{RESET}\n")
-        full_url = target if target.startswith("http") else f"http://{target}"
+            if mode not in ['1', '2', '3', '4']:
+                print(f"{ERROR}[!] Invalid selection. Try again.{RESET}")
+                time.sleep(0.5)
+                continue
 
-        # 5. Execution Pipeline
-        run_step(1, "Technology Fingerprinting", f"whatweb -a 3 {full_url} --color=never > {raw_dir}/tech_stack.txt")
-        run_step(2, "Service Discovery", f"nmap -sV -F {host_only} -oN {raw_dir}/nmap_scan.txt")
-        
-        wordlist = "/usr/share/wordlists/dirb/common.txt"
-        if os.path.exists(wordlist):
-            run_step(3, "Path Discovery", f"ffuf -u {full_url}/FUZZ -w {wordlist} -mc 200,301,302 -t 40 -o {raw_dir}/ffuf_results.json")
-        else:
-            print(f"{ACCENT}[!] Wordlist not found. Skipping Path Discovery.{RESET}")
+            # --- TARGET INPUT HANDLING ---
+            try:
+                target_raw = input(f"{SECONDARY}{BOLD}» Target IP/Domain (or 'exit'): {RESET}").strip()
+            except KeyboardInterrupt:
+                sys.exit(0)
 
-        # 6. Report Generation
-        generate_report(base_dir, target)
+            if target_raw.lower() in ['exit', 'quit']:
+                print(f"{ACCENT}[*] Exiting Aether...{RESET}")
+                break
+            if not target_raw: continue
 
-        print(f"\n{PRIMARY}{BOLD}--Mission Accomplished--{RESET}")
-        print(f"{SECONDARY}[ℹ] Results saved in: {base_dir}{RESET}")
+            # Resolve Target
+            try:
+                clean_host = target_raw.replace("http://", "").replace("https://", "").split('/')[0]
+                target_ip = socket.gethostbyname(clean_host)
+                print(f"{SUCCESS}[+] Resolved {clean_host} -> {target_ip}{RESET}")
+            except:
+                print(f"{ERROR}[!] Could not resolve host.{RESET}")
+                input(f"\nPress Enter to try again...")
+                continue
 
+            # --- EXECUTION ---
+            if mode == '4':
+                get_ip_reputation(target_ip)
+                input(f"{PRIMARY}Check Complete. Press Enter to return to menu...{RESET}")
+                continue
+
+            # Create Directory
+            base_dir = get_next_scan_dir()
+            raw_dir = f"{base_dir}/raw_logs"
+            os.makedirs(raw_dir, exist_ok=True)
+
+            nmap_args = "-sV -F"
+            ffuf_args = "-t 40"
+            
+            if mode == '1': nmap_args = "-sS -T2 --top-ports 100"; ffuf_args = "-t 10 -p 0.1"
+            elif mode == '3': nmap_args = "-A -T4"; ffuf_args = "-t 80"
+
+            # SCAN FLOW WITH ABORT HANDLING
+            try:
+                get_ip_reputation(target_ip)
+                
+                full_url = target_raw if target_raw.startswith("http") else f"http://{target_raw}"
+                
+                # Step 1
+                run_step(1, "Tech Fingerprint", f"whatweb -a 1 {full_url} > {raw_dir}/tech.txt")
+                
+                # Step 2
+                run_step(2, "Service Scan", f"nmap {nmap_args} {target_ip} -oN {raw_dir}/nmap.txt")
+                
+                # Step 3
+                wordlist = "/usr/share/wordlists/dirb/common.txt"
+                if os.path.exists(wordlist):
+                    run_step(3, "Directory Enum", f"ffuf -u {full_url}/FUZZ -w {wordlist} {ffuf_args} -mc 200,301 -o {raw_dir}/ffuf.json")
+                
+                print(f"{SUCCESS}[+] Scan Complete. Results in: {base_dir}{RESET}")
+                input(f"\nPress Enter to return to menu...")
+
+            except KeyboardInterrupt:
+                # If user chose to Abort All inside run_step
+                print(f"\n\n{ERROR}[!] Full Scan Aborted by user.{RESET}")
+                
+                # Cleanup option
+                confirm = input(f"{ACCENT}[?] Delete incomplete folder '{base_dir}'? (Y/n): {RESET}").lower()
+                if confirm in ['y', 'yes', '']:
+                    shutil.rmtree(base_dir)
+                    print(f"{SUCCESS}[+] Cleanup done.{RESET}")
+                else:
+                    print(f"{SECONDARY}[ℹ] Partial data kept in {base_dir}{RESET}")
+                
+                time.sleep(1)
+                # Loop will restart naturally
+            
     except KeyboardInterrupt:
-        print(f"\n\n{ERROR}[!] Interrupted by user.{RESET}")
-        
-        if base_dir and os.path.exists(base_dir):
-            choice = input(f"{ACCENT}[?] Scan incomplete. Delete session folder '{base_dir}'? (Y/n): {RESET}").lower()
-            if choice in ['y', '']:
-                shutil.rmtree(base_dir)
-                print(f"{SUCCESS}[+] Folder deleted successfully.{RESET}")
-            else:
-                print(f"{SECONDARY}[ℹ] Partial results kept in '{base_dir}'.{RESET}")
-        
+        print(f"\n\n{ACCENT}[!] User Interrupted. Exiting safely.{RESET}")
         sys.exit(0)
 
 if __name__ == "__main__":
