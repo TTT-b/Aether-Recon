@@ -1,73 +1,50 @@
-# 🔭 Aether: SOC Analyst Edition
+# Aether: SOC Analyst Edition
 
-![Version](https://img.shields.io/badge/Version-6.0-blueviolet)
+![Version](https://img.shields.io/badge/Version-7.1-blueviolet)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB)
-![Focus](https://img.shields.io/badge/Focus-SOC%20%26%20Intel-00C853)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-**Aether** is an intelligent, automated investigation framework designed specifically for **SOC Analysts** and **Blue Teamers**. 
+**Aether** is an automated investigation framework designed for SOC Analysts and Blue Teams. It integrates network reconnaissance, web enumeration, and threat intelligence into a unified CLI tool.
 
-Unlike standard "noisy" scanners, Aether offers a **tactical menu** allowing you to choose between stealthy reconnaissance, aggressive enumeration, or pure threat intelligence gathering via API integrations.
+## Overview
 
----
+Unlike standard scanners, Aether focuses on the analyst's workflow. It offers adaptive scanning modes (Stealth vs. Aggressive) and integrates API-based threat intelligence to reduce triage time.
 
-## 🔮 Core Capabilities
+## Key Features
 
-### 🛡️ Adaptive Scanning Modes
-* **Stealth Recon (Mode 1):** Low-and-slow scanning (`-T2`) to evade IDS/IPS detection. Quietly maps the perimeter.
-* **Standard Recon (Mode 2):** Balanced speed and depth for routine checks.
-* **Aggressive Recon (Mode 3):** Full-throttle enumeration (`-A`, `-T4`) for comprehensive data collection in permissive environments.
+### 1. Adaptive Scanning Modes
+- **Stealth Recon (Mode 1):** Uses minimal threads and timing templates (`-T2`) to evade IDS/IPS detection.
+- **Standard Recon (Mode 2):** Balanced speed for routine checks.
+- **Aggressive Recon (Mode 3):** Full-throttle enumeration (`-A`, `-T4`) for comprehensive data collection.
 
-### 🌐 Integrated Threat Intelligence
-* **AbuseIPDB Integration:** Automatically queries the reputation of your target IP.
-* **Visual Scoring:** Delivers a color-coded confidence score (Green/Orange/Red) directly in the terminal to speed up triage.
+### 2. Integrated Threat Intelligence
+- **AbuseIPDB Integration:** Automatically queries target reputation via API.
+- **Confidence Scoring:** Returns a color-coded abuse confidence score directly to the terminal.
 
-### 🧩 Smart Workflow
-* **Self-Healing Dependencies:** Detects missing tools (`nmap`, `ffuf`, etc.) and offers to auto-install them via `apt`.
-* **Fail-Safe Interrupts:** Pressed `Ctrl+C` by mistake? Aether creates a safety checkpoint, asking if you want to **skip the current step** or **abort the entire scan** and clean up the files.
+### 3. Resilience & Automation
+- **Self-Healing Dependencies:** Automatically detects missing tools (`nmap`, `ffuf`, `whatweb`) and handles installation via `apt`.
+- **Fail-Safe Interrupts:** Smart handling of `Ctrl+C` events, allowing the user to skip specific steps or abort cleanly without leaving residual files.
 
----
+## Technical Stack
 
-## 🧰 The Tech Stack
+The tool orchestrates the following engines:
+- **Network:** Nmap (Service discovery & versioning)
+- **Web:** WhatWeb (Technology fingerprinting)
+- **Fuzzing:** FFUF (Directory & file enumeration)
+- **Intel:** cURL + AbuseIPDB API
 
-Aether acts as a smart orchestrator for industry-standard tools:
+## Installation
 
-* **Network:** `Nmap` (Service discovery & versioning)
-* **Web:** `WhatWeb` (Technology fingerprinting & CMS detection)
-* **Fuzzing:** `FFUF` (Directory & file enumeration)
-* **Intel:** `cURL` + AbuseIPDB API
-
----
-
-## 📥 Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/TTT-b/Aether-Recon.git](https://github.com/TTT-b/Aether-Recon.git)
-    cd Aether-Recon
-    ```
-
-2.  **Make it executable:**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/TTT-b/Aether-Recon.git
+   cd Aether-Recon
+2. Grant execution permissions:
     ```bash
     chmod +x aether.py
     ```
-
-3.  **Run the tool:**
+3. Run the tool:
     ```bash
     python3 aether.py
     ```
-
-> **⚡ Pro Tip:** Open `aether.py` and replace `ABUSEIPDB_KEY` with your own API key to get fresh threat data!
-
----
-
-## 🕹️ Usage Guide
-
-Once launched, Aether presents a tactical dashboard:
-
-```text
-Select Operation Mode:
-  [1] Stealth Recon     (Slow, Quiet, -T2)
-  [2] Standard Recon    (Default, -sV)
-  [3] Aggressive Recon  (Loud, Full Scan, -A)
-  [4] Threat Intel Check (API Only)
+Note: For Threat Intelligence features, ensure you update the ```ABUSEIPDB_KEY``` variable in ```aether.py``` with your own API key.
