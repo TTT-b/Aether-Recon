@@ -17,14 +17,14 @@ def show_banner():
     """Display the enhanced V6.0 ASCII banner"""
     os.system('clear' if os.name == 'posix' else 'cls')
     banner = f"{PRIMARY}{BOLD}" + "═"*65 + f"\n" + r"""
-    ___    ______ ______  __  __ ______ ____  
-   /   |  / ____//_  __/ / / / // ____// __ \ 
-  / /| | / __/    / /   / /_/ // __/  / /_/ / 
- / ___ |/ /___   / /   / __  // /___ / _, _/  
+    ___     ______ ______  __  __ ______ ____  
+   /   |   / ____//_  __/ / / / // ____// __ \ 
+  / /| |  / __/    / /   / /_/ // __/  / /_/ / 
+ / ___ | / /___   / /   / __  // /___ / _, _/  
 /_/  |_|/_____/  /_/   /_/ /_//_____//_/ |_|   
                                                
            [ Professional Recon Suite V5.0 ]
-    🔍 Scanning for vulnerabilities and insights...
+     Scanning for vulnerabilities and insights...
  ═════════════════════════════════════════════════════
     """
     print(banner)
@@ -182,7 +182,7 @@ def main():
         # 6. Report Generation
         generate_report(base_dir, target)
 
-        print(f"\n{PRIMARY}{BOLD}★ Mission Accomplished ★{RESET}")
+        print(f"\n{PRIMARY}{BOLD}--Mission Accomplished--{RESET}")
         print(f"{SECONDARY}[ℹ] Results saved in: {base_dir}{RESET}")
 
     except KeyboardInterrupt:
