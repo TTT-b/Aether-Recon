@@ -1,61 +1,73 @@
-# 🌌 Aether Recon Suite V5.0
+# 🔭 Aether: SOC Analyst Edition
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
-![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Version](https://img.shields.io/badge/Version-6.0-blueviolet)
+![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB)
+![Focus](https://img.shields.io/badge/Focus-SOC%20%26%20Intel-00C853)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-**Aether** is a modular, automated reconnaissance framework designed for fast and effective passive fingerprinting, service discovery, and path enumeration. 
+**Aether** is an intelligent, automated investigation framework designed specifically for **SOC Analysts** and **Blue Teamers**. 
 
-Built for **Security Researchers**, **Pentesters**, and **Bug Bounty Hunters** who need a streamlined, automated workflow to kickstart their recon phase.
+Unlike standard "noisy" scanners, Aether offers a **tactical menu** allowing you to choose between stealthy reconnaissance, aggressive enumeration, or pure threat intelligence gathering via API integrations.
 
-## 🚀 Key Features
+---
 
-* **Technology Fingerprinting**: Leverages `WhatWeb` to identify CMS, frameworks, and web server details.
-* **Service Discovery**: Uses `Nmap` for rapid port scanning and service version detection.
-* **Path Fuzzing**: Integrated `FFUF` engine with **Live Output** for real-time directory and file brute-forcing.
-* **Smart Dependency Check**: Automatically detects missing/broken tools and offers to repair or install them.
-* **Executive Reporting**: Generates a smart Markdown summary that extracts the most important findings for quick review.
-* **Recon Blue UI**: Professional, high-contrast CLI interface designed for terminal efficiency.
+## 🔮 Core Capabilities
 
+### 🛡️ Adaptive Scanning Modes
+* **Stealth Recon (Mode 1):** Low-and-slow scanning (`-T2`) to evade IDS/IPS detection. Quietly maps the perimeter.
+* **Standard Recon (Mode 2):** Balanced speed and depth for routine checks.
+* **Aggressive Recon (Mode 3):** Full-throttle enumeration (`-A`, `-T4`) for comprehensive data collection in permissive environments.
 
-## 🛠 Dependencies
+### 🌐 Integrated Threat Intelligence
+* **AbuseIPDB Integration:** Automatically queries the reputation of your target IP.
+* **Visual Scoring:** Delivers a color-coded confidence score (Green/Orange/Red) directly in the terminal to speed up triage.
 
-**Good News:** Aether automatically checks for these tools and will offer to install/repair them for you! 
+### 🧩 Smart Workflow
+* **Self-Healing Dependencies:** Detects missing tools (`nmap`, `ffuf`, etc.) and offers to auto-install them via `apt`.
+* **Fail-Safe Interrupts:** Pressed `Ctrl+C` by mistake? Aether creates a safety checkpoint, asking if you want to **skip the current step** or **abort the entire scan** and clean up the files.
 
-* **Nmap**: Service and port scanning.
-* **WhatWeb**: Deep technology fingerprinting.
-* **FFUF**: High-speed directory fuzzing.
-* **Python 3**: Core runtime environment.
+---
 
-> **Note:** This tool is optimized for Kali Linux but works on any Debian-based system.
+## 🧰 The Tech Stack
 
+Aether acts as a smart orchestrator for industry-standard tools:
+
+* **Network:** `Nmap` (Service discovery & versioning)
+* **Web:** `WhatWeb` (Technology fingerprinting & CMS detection)
+* **Fuzzing:** `FFUF` (Directory & file enumeration)
+* **Intel:** `cURL` + AbuseIPDB API
+
+---
 
 ## 📥 Installation
 
-1. **Clone the repository + Grant execution permissions:**
-```bash
-git clone https://github.com/TTT-b/Aether-Recon.git
-cd Aether-Recon
-chmod +x aether.py
-```
-2. **Usage**
-Run the suite using Python3:
-```bash
-python3 aether.py
-```
-🔍 How it Works
-Target Input: Follow the on-screen prompt to enter your Target Host (e.g., example.com).
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/TTT-b/Aether-Recon.git](https://github.com/TTT-b/Aether-Recon.git)
+    cd Aether-Recon
+    ```
 
-Automated Scanning: Watch the engines run in sequence with live feedback.
+2.  **Make it executable:**
+    ```bash
+    chmod +x aether.py
+    ```
 
-Smart Results: Access your organized results in the session folder:
+3.  **Run the tool:**
+    ```bash
+    python3 aether.py
+    ```
 
-Executive_Summary.md: Your "Smart" human-readable summary.
+> **⚡ Pro Tip:** Open `aether.py` and replace `ABUSEIPDB_KEY` with your own API key to get fresh threat data!
 
-raw_logs/: Full, unedited output files from all tools for deep analysis.
+---
 
-⚠️ Disclaimer
-This tool is for educational purposes and authorized testing only.
-Do not use this tool on any system or network without explicit permission. The author is not responsible for any illegal use or damage caused by this tool.
+## 🕹️ Usage Guide
 
-Happy Hacking! 🕵️‍♂️
+Once launched, Aether presents a tactical dashboard:
+
+```text
+Select Operation Mode:
+  [1] Stealth Recon     (Slow, Quiet, -T2)
+  [2] Standard Recon    (Default, -sV)
+  [3] Aggressive Recon  (Loud, Full Scan, -A)
+  [4] Threat Intel Check (API Only)
