@@ -1,4 +1,4 @@
-# Aether: SOC Analyst Edition
+# Aether: Auto Recon
 
 ![Version](https://img.shields.io/badge/Version-7.1-blueviolet)
 ![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB)
