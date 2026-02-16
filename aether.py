@@ -28,10 +28,8 @@ def show_banner():
    /   |    / ____//_   __/ / / / // ____// __ \ 
   / /| |   / __/    / /    / /_/ // __/  / /_/ / 
  / ___ |  / /___   / /    / __  // /___ / _, _/  
-/_/  |_| /_____/  /_/    /_/ /_//_____//_/ |_|   
-                                                 
-           [ SOC Analyst Edition V6.0 ]
-   Integrates: Network Recon | Web Enum | Threat Intel
+/_/  |_| /_____/  /_/    /_/ /_//_____//_/ |_|                                                   
+[ Integrates: Network Recon | Web Enum | Threat Intel V7.1 ]
  ═════════════════════════════════════════════════════
     """
     print(banner)
