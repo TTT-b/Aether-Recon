@@ -7,19 +7,11 @@ import json
 import shutil
 import socket
 
-# ==============================================================================
-#  AETHER RECON FRAMEWORK - V7.6
-#  Author: Tomer Boosi
-#  Description: Automated reconnaissance tool integrating Nmap, FFUF, and WhatWeb
-#               with real-time Threat Intelligence via AbuseIPDB.
-# ==============================================================================
-
 # --- CONFIGURATION ---
 # API Key for AbuseIPDB (Used for reputation checks)
 ABUSEIPDB_KEY = "40e57a16c83beecad28a63eed160a380d227bb5e047d1e87824513686368b1ae30eb958516064458"
 
 # --- VISUAL PALETTE (ANSI Colors) ---
-# Used to create a professional CLI experience
 PRIMARY = '\033[38;5;33m'   # Blue (Titles)
 SECONDARY = '\033[38;5;45m' # Light Blue (Info)
 SUCCESS = '\033[38;5;82m'   # Green (Success)
@@ -38,7 +30,7 @@ def show_banner():
  / ___ |  / /___   / /    / __  // /___ / _, _/  
 /_/  |_| /_____/  /_/    /_/ /_//_____//_/ |_|   
                                                  
-[ Integrates: Network Recon | Web Enum | Threat Intel V7.6 ]
+[ Integrates: Network Recon | Web Enum | Threat Intel V7.1 ]
  ═════════════════════════════════════════════════════
     """
     print(banner)
